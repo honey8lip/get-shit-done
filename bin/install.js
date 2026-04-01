@@ -689,6 +689,39 @@ function convertClaudeCommandToCopilotSkill(content, skillName, isGlobal = false
 }
 
 /**
+ * Convert a Claude command (.md) to a Claude skill (SKILL.md).
+ * Claude Code is the native format, so minimal conversion needed —
+ * preserve allowed-tools as YAML multiline list, preserve argument-hint,
+ * convert name from gsd:xxx to gsd-xxx format.
+ */
+function convertClaudeCommandToClaudeSkill(content, skillName) {
+  const { frontmatter, body } = extractFrontmatterAndBody(content);
+  if (!frontmatter) return content;
+
+  const description = extractFrontmatterField(frontmatter, 'description') || '';
+  const argumentHint = extractFrontmatterField(frontmatter, 'argument-hint');
+  const agent = extractFrontmatterField(frontmatter, 'agent');
+
+  // Preserve allowed-tools as YAML multiline list (Claude native format)
+  const toolsMatch = frontmatter.match(/^allowed-tools:\s*\n((?:\s+-\s+.+\n?)*)/m);
+  let toolsBlock = '';
+  if (toolsMatch) {
+    toolsBlock = 'allowed-tools:\n' + toolsMatch[1];
+    // Ensure trailing newline
+    if (!toolsBlock.endsWith('\n')) toolsBlock += '\n';
+  }
+
+  // Reconstruct frontmatter in Claude skill format
+  let fm = `---\nname: ${skillName}\ndescription: ${yamlQuote(description)}\n`;
+  if (argumentHint) fm += `argument-hint: ${yamlQuote(argumentHint)}\n`;
+  if (agent) fm += `agent: ${agent}\n`;
+  if (toolsBlock) fm += toolsBlock;
+  fm += '---';
+
+  return `${fm}\n${body}`;
+}
+
+/**
  * Convert a Claude agent (.md) to a Copilot agent (.agent.md).
  * Applies tool mapping + deduplication, formats tools as JSON array.
  * CONV-04: JSON array format. CONV-05: Tool name mapping.
@@ -3037,6 +3070,63 @@ function copyCommandsAsCopilotSkills(srcDir, skillsDir, prefix, isGlobal = false
 }
 
 /**
+ * Copy Claude commands as Claude skills — one folder per skill with SKILL.md.
+ * Claude Code 2.1.88+ uses skills/xxx/SKILL.md instead of commands/gsd/xxx.md.
+ * Claude is the native format so no path replacement is needed — only
+ * frontmatter restructuring via convertClaudeCommandToClaudeSkill.
+ * @param {string} srcDir - Source commands directory
+ * @param {string} skillsDir - Target skills directory
+ * @param {string} prefix - Skill name prefix (e.g. 'gsd')
+ * @param {string} pathPrefix - Path prefix for file references
+ * @param {string} runtime - Target runtime
+ * @param {boolean} isGlobal - Whether this is a global install
+ */
+function copyCommandsAsClaudeSkills(srcDir, skillsDir, prefix, pathPrefix, runtime, isGlobal = false) {
+  if (!fs.existsSync(srcDir)) {
+    return;
+  }
+
+  fs.mkdirSync(skillsDir, { recursive: true });
+
+  // Remove previous GSD Claude skills to avoid stale command skills
+  const existing = fs.readdirSync(skillsDir, { withFileTypes: true });
+  for (const entry of existing) {
+    if (entry.isDirectory() && entry.name.startsWith(`${prefix}-`)) {
+      fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
+    }
+  }
+
+  function recurse(currentSrcDir, currentPrefix) {
+    const entries = fs.readdirSync(currentSrcDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const srcPath = path.join(currentSrcDir, entry.name);
+      if (entry.isDirectory()) {
+        recurse(srcPath, `${currentPrefix}-${entry.name}`);
+        continue;
+      }
+
+      if (!entry.name.endsWith('.md')) {
+        continue;
+      }
+
+      const baseName = entry.name.replace('.md', '');
+      const skillName = `${currentPrefix}-${baseName}`;
+      const skillDir = path.join(skillsDir, skillName);
+      fs.mkdirSync(skillDir, { recursive: true });
+
+      let content = fs.readFileSync(srcPath, 'utf8');
+      content = processAttribution(content, getCommitAttribution('claude'));
+      content = convertClaudeCommandToClaudeSkill(content, skillName);
+
+      fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content);
+    }
+  }
+
+  recurse(srcDir, prefix);
+}
+
+/**
  * Recursively install GSD commands as Antigravity skills.
  * Each command becomes a skill-name/ folder containing SKILL.md.
  * Mirrors copyCommandsAsCopilotSkills but uses Antigravity converters.
@@ -3364,6 +3454,7 @@ function validateHookFields(settings) {
  */
 function uninstall(isGlobal, runtime = 'claude') {
   const isOpencode = runtime === 'opencode';
+  const isGemini = runtime === 'gemini';
   const isCodex = runtime === 'codex';
   const isCopilot = runtime === 'copilot';
   const isAntigravity = runtime === 'antigravity';
@@ -3551,12 +3642,38 @@ function uninstall(isGlobal, runtime = 'claude') {
         console.log(`  ${green}✓${reset} Removed ${skillCount} Windsurf skills`);
       }
     }
-  } else {
+  } else if (isGemini) {
+    // Gemini: still uses commands/gsd/
     const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
     if (fs.existsSync(gsdCommandsDir)) {
       fs.rmSync(gsdCommandsDir, { recursive: true });
       removedCount++;
       console.log(`  ${green}✓${reset} Removed commands/gsd/`);
+    }
+  } else {
+    // Claude Code: remove skills/gsd-*/ directories
+    const skillsDir = path.join(targetDir, 'skills');
+    if (fs.existsSync(skillsDir)) {
+      let skillCount = 0;
+      const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name.startsWith('gsd-')) {
+          fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
+          skillCount++;
+        }
+      }
+      if (skillCount > 0) {
+        removedCount++;
+        console.log(`  ${green}✓${reset} Removed ${skillCount} Claude Code skills`);
+      }
+    }
+
+    // Also clean up legacy commands/gsd/ from older installs
+    const legacyCommandsDir = path.join(targetDir, 'commands', 'gsd');
+    if (fs.existsSync(legacyCommandsDir)) {
+      fs.rmSync(legacyCommandsDir, { recursive: true });
+      removedCount++;
+      console.log(`  ${green}✓${reset} Removed legacy commands/gsd/`);
     }
   }
 
@@ -3983,6 +4100,7 @@ function generateManifest(dir, baseDir) {
  */
 function writeManifest(configDir, runtime = 'claude') {
   const isOpencode = runtime === 'opencode';
+  const isGemini = runtime === 'gemini';
   const isCodex = runtime === 'codex';
   const isCopilot = runtime === 'copilot';
   const isAntigravity = runtime === 'antigravity';
@@ -3999,7 +4117,7 @@ function writeManifest(configDir, runtime = 'claude') {
   for (const [rel, hash] of Object.entries(gsdHashes)) {
     manifest.files['get-shit-done/' + rel] = hash;
   }
-  if (!isOpencode && !isCodex && !isCopilot && !isAntigravity && !isCursor && !isWindsurf && fs.existsSync(commandsDir)) {
+  if (isGemini && fs.existsSync(commandsDir)) {
     const cmdHashes = generateManifest(commandsDir);
     for (const [rel, hash] of Object.entries(cmdHashes)) {
       manifest.files['commands/gsd/' + rel] = hash;
@@ -4012,7 +4130,7 @@ function writeManifest(configDir, runtime = 'claude') {
       }
     }
   }
-  if ((isCodex || isCopilot || isAntigravity || isCursor || isWindsurf) && fs.existsSync(codexSkillsDir)) {
+  if ((isCodex || isCopilot || isAntigravity || isCursor || isWindsurf || (!isOpencode && !isGemini)) && fs.existsSync(codexSkillsDir)) {
     for (const skillName of listCodexSkillNames(codexSkillsDir)) {
       const skillRoot = path.join(codexSkillsDir, skillName);
       const skillHashes = generateManifest(skillRoot);
@@ -4245,11 +4363,11 @@ function install(isGlobal, runtime = 'claude') {
     } else {
       failures.push('skills/gsd-*');
     }
-  } else {
-    // Claude Code & Gemini: nested structure in commands/ directory
+  } else if (isGemini) {
+    // Gemini: nested structure in commands/ directory (still supported)
     const commandsDir = path.join(targetDir, 'commands');
     fs.mkdirSync(commandsDir, { recursive: true });
-    
+
     const gsdSrc = path.join(src, 'commands', 'gsd');
     const gsdDest = path.join(commandsDir, 'gsd');
     copyWithPathReplacement(gsdSrc, gsdDest, pathPrefix, runtime, true, isGlobal);
@@ -4257,6 +4375,29 @@ function install(isGlobal, runtime = 'claude') {
       console.log(`  ${green}✓${reset} Installed commands/gsd`);
     } else {
       failures.push('commands/gsd');
+    }
+  } else {
+    // Claude Code: skills/ format (2.1.88+ compatibility)
+    const skillsDir = path.join(targetDir, 'skills');
+    const gsdSrc = path.join(src, 'commands', 'gsd');
+    copyCommandsAsClaudeSkills(gsdSrc, skillsDir, 'gsd', pathPrefix, runtime, isGlobal);
+    if (fs.existsSync(skillsDir)) {
+      const count = fs.readdirSync(skillsDir, { withFileTypes: true })
+        .filter(e => e.isDirectory() && e.name.startsWith('gsd-')).length;
+      if (count > 0) {
+        console.log(`  ${green}✓${reset} Installed ${count} skills to skills/`);
+      } else {
+        failures.push('skills/gsd-*');
+      }
+    } else {
+      failures.push('skills/gsd-*');
+    }
+
+    // Clean up legacy commands/gsd/ from previous installs
+    const legacyCommandsDir = path.join(targetDir, 'commands', 'gsd');
+    if (fs.existsSync(legacyCommandsDir)) {
+      fs.rmSync(legacyCommandsDir, { recursive: true });
+      console.log(`  ${green}✓${reset} Removed legacy commands/gsd/ directory`);
     }
   }
 
@@ -5031,6 +5172,8 @@ if (process.env.GSD_TEST_MODE) {
     convertClaudeCommandToAntigravitySkill,
     convertClaudeAgentToAntigravityAgent,
     copyCommandsAsAntigravitySkills,
+    convertClaudeCommandToClaudeSkill,
+    copyCommandsAsClaudeSkills,
     convertClaudeToWindsurfMarkdown,
     convertClaudeCommandToWindsurfSkill,
     convertClaudeAgentToWindsurfAgent,
