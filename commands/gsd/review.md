@@ -29,7 +29,7 @@ Phase number: extracted from $ARGUMENTS (required)
 - `--gemini` — Include Gemini CLI review
 - `--claude` — Include Claude CLI review (uses separate session)
 - `--codex` — Include Codex CLI review
-- `--opencode` or `--copilot` — Include OpenCode review (routes through GitHub Copilot models)
+- `--opencode` — Include OpenCode review (uses model from user's OpenCode config)
 - `--all` — Include all available CLIs
 </context>
 

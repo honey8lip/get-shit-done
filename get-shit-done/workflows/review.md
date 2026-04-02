@@ -27,7 +27,7 @@ Parse flags from `$ARGUMENTS`:
 - `--claude` → include Claude
 - `--codex` → include Codex
 - `--coderabbit` → include CodeRabbit
-- `--opencode` or `--copilot` → include OpenCode (routes through GitHub Copilot models)
+- `--opencode` → include OpenCode
 - `--all` → include all available
 - No flags → include all available
 
@@ -146,7 +146,7 @@ coderabbit review --prompt-only 2>/dev/null > /tmp/gsd-review-coderabbit-{phase}
 
 **OpenCode (via GitHub Copilot):**
 ```bash
-cat /tmp/gsd-review-prompt-{phase}.md | opencode run - -m "github-copilot/gpt-5.3-codex" --variant high 2>/dev/null > /tmp/gsd-review-opencode-{phase}.md
+cat /tmp/gsd-review-prompt-{phase}.md | opencode run - 2>/dev/null > /tmp/gsd-review-opencode-{phase}.md
 ```
 
 If a CLI fails, log the error and continue with remaining CLIs.
@@ -199,7 +199,7 @@ plans_reviewed: [{list of PLAN.md files}]
 
 ---
 
-## OpenCode Review (GitHub Copilot / GPT-5.3-Codex)
+## OpenCode Review
 
 {opencode review content}
 
