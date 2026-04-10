@@ -34,7 +34,7 @@ AGENT_SKILLS_CHECKER=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" agen
 CONTEXT_WINDOW=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get context_window 2>/dev/null || echo "200000")
 ```
 
-When `CONTEXT_WINDOW >= 500000`, the planner prompt includes prior phase CONTEXT.md files so cross-phase decisions are consistent (e.g., "use library X for all data fetching" from Phase 2 is visible to Phase 5's planner).
+When `CONTEXT_WINDOW >= 500000`, the planner prompt includes the 3 most recent prior phase CONTEXT.md and SUMMARY.md files so cross-phase decisions are consistent (e.g., "use library X for all data fetching" from Phase 2 is visible to Phase 5's planner). Limited to 3 to stay within context budget on large projects.
 
 Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `nyquist_validation_enabled`, `commit_docs`, `text_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_reviews`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`, `phase_req_ids`, `response_language`.
 
@@ -642,9 +642,10 @@ Planner prompt:
 - {reviews_path} (Cross-AI Review Feedback - if --reviews)
 - {UI_SPEC_PATH} (UI Design Contract — visual/interaction specs, if exists)
 ${CONTEXT_WINDOW >= 500000 ? `
-**Cross-phase context (1M model enrichment):**
-- Prior phase CONTEXT.md files (locked decisions from earlier phases — maintain consistency)
-- Prior phase SUMMARY.md files (what was actually built — reuse patterns, avoid duplication)
+**Cross-phase context (1M model enrichment — 3 most recent prior phases only):**
+- CONTEXT.md files from the 3 most recent completed phases (locked decisions — maintain consistency)
+- SUMMARY.md files from the 3 most recent completed phases (what was built — reuse patterns, avoid duplication)
+- Skip phases older than the 3 most recent to stay within context budget
 ` : ''}
 </files_to_read>
 
