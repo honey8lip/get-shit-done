@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **`/gsd-plan-review-convergence` command** — Cross-AI plan convergence loop that automates `plan-phase → review → replan → re-review` cycles. Spawns isolated agents for `gsd-plan-phase` and `gsd-review`; orchestrator only does loop control, HIGH concern counting, stall detection, and escalation. Supports `--codex`, `--gemini`, `--claude`, `--opencode`, `--all` reviewers and `--max-cycles N` (default 3). Loop exits when no HIGH concerns remain; stall detection warns when count isn't decreasing; escalation gate asks user to proceed or review manually when max cycles reached (#2306)
+
 ### Fixed
 - **Shell hooks falsely flagged as stale on every session** — `gsd-phase-boundary.sh`, `gsd-session-state.sh`, and `gsd-validate-commit.sh` now ship with a `# gsd-hook-version: {{GSD_VERSION}}` header; the installer substitutes `{{GSD_VERSION}}` in `.sh` hooks the same way it does for `.js` hooks; and the stale-hook detector in `gsd-check-update.js` now matches bash `#` comment syntax in addition to JS `//` syntax. All three changes are required together — neither the regex fix alone nor the install fix alone is sufficient to resolve the false positive (#2136, #2206, #2209, #2210, #2212)
 
