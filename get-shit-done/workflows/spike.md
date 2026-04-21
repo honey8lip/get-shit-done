@@ -245,20 +245,20 @@ Before starting each spike (not just the first), re-read `.planning/spikes/MANIF
 
 **a.** Create `.planning/spikes/NNN-descriptive-name/`
 
-**b.** Assess whether the user needs to experience this spike or Claude can verify alone:
+**b.** Default to giving the user something they can experience. The bias should be toward building a simple UI or interactive demo, not toward stdout that only Claude reads. The user wants to *feel* the spike working, not just be told it works.
 
-Build interactive prototype when validating:
-- Behavior that unfolds over time (streaming, real-time, animations)
-- Cause-and-effect sequences (click X → Y happens)
-- Data flow between systems
-- Visual or presentation quality
-- Timing or performance feel
+**The default is: build something the user can interact with.** This could be:
+- A simple HTML page that shows the result visually
+- A web UI with a button that triggers the action and shows the response
+- A page that displays data flowing through a pipeline
+- A minimal interface where the user can try different inputs and see outputs
 
-Stay with stdout/CLI when validating:
-- Pure data transformation
-- Binary yes/no questions
-- Benchmark numbers
-- Facts, not feelings
+**Only fall back to stdout/CLI verification when the spike is genuinely about a fact, not a feeling:**
+- Pure data transformation where the answer is "yes it parses correctly"
+- Binary yes/no questions (does this API authenticate? does this library exist?)
+- Benchmark numbers (how fast is X? how much memory does Y use?)
+
+When in doubt, build the UI. It takes a few extra minutes but produces a spike the user can actually demo and feel confident about.
 
 **If the spike needs runtime observability,** build a forensic log layer:
 1. Event log array with ISO timestamps and category tags
