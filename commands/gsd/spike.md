@@ -16,7 +16,7 @@ Rapid feasibility validation through focused, throwaway experiments. Each spike 
 specific question with observable evidence. Spikes live in `.planning/spikes/` and integrate
 with GSD commit patterns, state tracking, and handoff workflows.
 
-Does not require `/gsd-new-project` — auto-creates `.planning/spikes/` if needed.
+Does not require `/gsd:new-project` — auto-creates `.planning/spikes/` if needed.
 </objective>
 
 <execution_context>

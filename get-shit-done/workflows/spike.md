@@ -1,7 +1,7 @@
 <purpose>
 Rapid feasibility validation through focused, throwaway experiments. Each spike answers one
 specific question with observable evidence. Saves artifacts to `.planning/spikes/`.
-Companion to `/gsd-spike-wrap-up`.
+Companion to `/gsd:spike-wrap-up`.
 </purpose>
 
 <required_reading>
@@ -244,14 +244,14 @@ After all spikes complete, present the consolidated report:
 
 **Package findings** — wrap spike knowledge into a reusable skill
 
-`/gsd-spike-wrap-up`
+`/gsd:spike-wrap-up`
 
 ───────────────────────────────────────────────────────────────
 
 **Also available:**
-- `/gsd-plan-phase` — start planning the real implementation
-- `/gsd-explore` — continue exploring the idea
-- `/gsd-add-phase` — add a phase to the roadmap based on findings
+- `/gsd:plan-phase` — start planning the real implementation
+- `/gsd:explore` — continue exploring the idea
+- `/gsd:add-phase` — add a phase to the roadmap based on findings
 
 ───────────────────────────────────────────────────────────────
 </step>

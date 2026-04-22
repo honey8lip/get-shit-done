@@ -1,7 +1,7 @@
 <purpose>
 Explore design directions through throwaway HTML mockups before committing to implementation.
 Each sketch produces 2-3 variants for comparison. Saves artifacts to `.planning/sketches/`.
-Companion to `/gsd-sketch-wrap-up`.
+Companion to `/gsd:sketch-wrap-up`.
 </purpose>
 
 <required_reading>
@@ -238,14 +238,14 @@ After all sketches complete, present the summary:
 
 **Package findings** — wrap design decisions into a reusable skill
 
-`/gsd-sketch-wrap-up`
+`/gsd:sketch-wrap-up`
 
 ───────────────────────────────────────────────────────────────
 
 **Also available:**
-- `/gsd-plan-phase` — start building the real UI
-- `/gsd-explore` — continue exploring the concept
-- `/gsd-spike` — spike technical feasibility of a design pattern
+- `/gsd:plan-phase` — start building the real UI
+- `/gsd:explore` — continue exploring the concept
+- `/gsd:spike` — spike technical feasibility of a design pattern
 
 ───────────────────────────────────────────────────────────────
 </step>
