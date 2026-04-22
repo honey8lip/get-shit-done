@@ -6780,18 +6780,20 @@ function installSdkIfNeeded() {
     emitSdkFatal('Failed to `npm run build` in sdk/.', { globalBin: null, exitCode: 1 });
   }
 
-  // 3. Install the built package globally so `gsd-sdk` lands on PATH.
-  const globalResult = spawnSync(npmCmd, ['install', '-g', '.'], { cwd: sdkDir, stdio: 'inherit' });
-  if (globalResult.status !== 0) {
-    emitSdkFatal('Failed to `npm install -g .` from sdk/.', { globalBin: null, exitCode: 1 });
-  }
-
-  // Ensure tsc-emitted cli.js is executable after npm install -g creates the bin symlink.
+  // Ensure tsc-emitted cli.js is executable before npm install -g creates the bin symlink.
   // tsc emits .js files as 644; npm install -g creates the symlink but does not chmod the
   // target, so the kernel refuses to exec the file on macOS (issue #2525).
   const cliPath = path.join(sdkDir, 'dist', 'cli.js');
   if (fs.existsSync(cliPath)) {
-    try { fs.chmodSync(cliPath, 0o755); } catch (e) { /* Windows */ }
+    try { fs.chmodSync(cliPath, 0o755); } catch (e) {
+      if (process.platform !== 'win32') throw e;
+    }
+  }
+
+  // 3. Install the built package globally so `gsd-sdk` lands on PATH.
+  const globalResult = spawnSync(npmCmd, ['install', '-g', '.'], { cwd: sdkDir, stdio: 'inherit' });
+  if (globalResult.status !== 0) {
+    emitSdkFatal('Failed to `npm install -g .` from sdk/.', { globalBin: null, exitCode: 1 });
   }
 
   // 4. Verify gsd-sdk is actually resolvable on PATH. npm's global bin dir is

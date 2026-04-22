@@ -113,6 +113,7 @@ describe('bug #2526: phase complete warns about unregistered REQ-IDs', () => {
     } catch (err) {
       stdout = err.stdout || '';
       stderr = err.stderr || '';
+      throw err;
     }
 
     const combined = stdout + stderr;
@@ -189,6 +190,7 @@ describe('bug #2526: phase complete warns about unregistered REQ-IDs', () => {
     } catch (err) {
       stdout = err.stdout || '';
       stderr = err.stderr || '';
+      throw err;
     }
 
     const combined = stdout + stderr;
@@ -258,6 +260,7 @@ describe('bug #2526: phase complete warns about unregistered REQ-IDs', () => {
     } catch (err) {
       stdout = err.stdout || '';
       stderr = err.stderr || '';
+      throw err;
     }
 
     const combined = stdout + stderr;

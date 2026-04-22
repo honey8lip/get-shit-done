@@ -29,13 +29,14 @@ const WORKFLOW_PATH = path.join(
 );
 
 describe('bug #2516: executor_model "inherit" must not be passed literally to Task()', () => {
-  const content = fs.readFileSync(WORKFLOW_PATH, 'utf-8');
-
   test('workflow file exists', () => {
     assert.ok(fs.existsSync(WORKFLOW_PATH), 'get-shit-done/workflows/execute-phase.md should exist');
   });
 
   test('workflow contains instructions for handling the "inherit" case', () => {
+    assert.ok(fs.existsSync(WORKFLOW_PATH), 'get-shit-done/workflows/execute-phase.md should exist');
+    const content = fs.readFileSync(WORKFLOW_PATH, 'utf-8');
+
     const hasInheritInstruction =
       content.includes('"inherit"') &&
       (content.includes('omit') || content.includes('Omit') || content.includes('omitting') || content.includes('Omitting'));
@@ -49,6 +50,9 @@ describe('bug #2516: executor_model "inherit" must not be passed literally to Ta
   });
 
   test('workflow does not instruct passing model="inherit" literally to Task', () => {
+    assert.ok(fs.existsSync(WORKFLOW_PATH), 'get-shit-done/workflows/execute-phase.md should exist');
+    const content = fs.readFileSync(WORKFLOW_PATH, 'utf-8');
+
     // The workflow must not have an unconditional model="{executor_model}" template
     // that would pass "inherit" through. It should document conditional logic.
     const hasConditionalModelParam =
@@ -69,9 +73,42 @@ describe('bug #2516: executor_model "inherit" must not be passed literally to Ta
       'string "inherit" to Task(), which falls back to the default model instead ' +
       'of the orchestrator model (root cause of #2516).'
     );
+
+    // Assert that no unsafe unconditional template line exists:
+    // a line that contains model="{executor_model}" or model='{executor_model}'
+    // and is NOT inside a "do NOT" / "do not" / "NEVER" instruction context.
+    const unsafeTemplateLines = content.split('\n').filter(line => {
+      const hasTemplate =
+        line.includes('model="{executor_model}"') ||
+        line.includes("model='{executor_model}'");
+      if (!hasTemplate) return false;
+      const isNegated = /do\s+not|NEVER|omit/i.test(line);
+      return !isNegated;
+    });
+    assert.strictEqual(
+      unsafeTemplateLines.length,
+      0,
+      'execute-phase workflow must not contain an unconditional model="{executor_model}" template outside of a "do not" / "NEVER" instruction context. ' +
+      'Unsafe lines found: ' + unsafeTemplateLines.join(' | ')
+    );
+
+    // Direct negative: scan line-by-line for model="inherit" as an actual Task argument.
+    // Skip lines that are part of instructional "do NOT" context.
+    const lines = content.split('\n');
+    for (const line of lines) {
+      if (/do\s+not|must\s+not|never|don't|NEVER/i.test(line)) continue;
+      assert.ok(
+        !line.includes('model="inherit"'),
+        `execute-phase.md must not pass model="inherit" as a literal Task argument. ` +
+        `Found on line: ${line.trim()}`
+      );
+    }
   });
 
   test('workflow documents that omitting model= causes inheritance from orchestrator', () => {
+    assert.ok(fs.existsSync(WORKFLOW_PATH), 'get-shit-done/workflows/execute-phase.md should exist');
+    const content = fs.readFileSync(WORKFLOW_PATH, 'utf-8');
+
     const hasInheritanceExplanation =
       content.includes('inherit') &&
       (

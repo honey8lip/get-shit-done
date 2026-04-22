@@ -382,7 +382,8 @@ Infrastructure and foundation phases — code foundations, database schema, inte
 - There is no UI, CLI output visible to end users, or real-time behavior to observe
 
 **If the phase IS infrastructure/foundation:** auto-pass UAT — skip the human verification items list entirely. Log:
-```
+
+```markdown
 ## Human Verification
 
 N/A — Infrastructure/foundation phase with no user-facing elements.

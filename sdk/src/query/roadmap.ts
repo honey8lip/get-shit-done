@@ -110,7 +110,7 @@ export async function extractCurrentMilestone(content: string, projectDir: strin
 
   // Fallback: derive from ROADMAP in-progress marker
   if (!version) {
-    const inProgressMatch = content.match(/🚧\s*\*\*v(\d+\.\d+)\s/);
+    const inProgressMatch = content.match(/🚧\s*\*\*v(\d+\.\d+(?:\.\d+)?)\s/);
     if (inProgressMatch) {
       version = 'v' + inProgressMatch[1];
     }
@@ -135,7 +135,7 @@ export async function extractCurrentMilestone(content: string, projectDir: strin
   const headingLevel = headingLevelMatch ? headingLevelMatch[1].length : 2;
   const restContent = content.slice(sectionStart + sectionMatch[0].length);
   const nextMilestonePattern = new RegExp(
-    `^#{1,${headingLevel}}\\s+(?:.*v\\d+\\.\\d+|✅|📋|🚧)`,
+    `^#{1,${headingLevel}}\\s+(?:.*v\\d+\\.\\d+(?:\\.\\d+)?|✅|📋|🚧)`,
     'mi'
   );
   const nextMatch = restContent.match(nextMilestonePattern);
