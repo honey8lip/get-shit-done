@@ -145,7 +145,7 @@ When researching "best library for X": find what the ecosystem actually uses, do
 1. `mcp__context7__resolve-library-id` with libraryName
 2. `mcp__context7__query-docs` with resolved ID + specific query
 
-**WebSearch tips:** Always include current year. Use multiple query variations. Cross-verify with authoritative sources.
+**WebSearch tips:** Do NOT append a specific year to queries — search engines already rank by recency, and a hardcoded year returns stale results once that year passes. Use `--freshness week` or `--freshness month` for recency, or add "latest" / "current" as a qualifier. Use multiple query variations. Cross-verify with authoritative sources.
 
 ## Enhanced Web Search (Brave API)
 

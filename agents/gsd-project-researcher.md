@@ -116,12 +116,12 @@ For finding what exists, community patterns, real-world usage.
 
 **Query templates:**
 ```
-Ecosystem: "[tech] best practices [current year]", "[tech] recommended libraries [current year]"
+Ecosystem: "[tech] best practices latest", "[tech] recommended libraries current"
 Patterns:  "how to build [type] with [tech]", "[tech] architecture patterns"
 Problems:  "[tech] common mistakes", "[tech] gotchas"
 ```
 
-Always include current year. Use multiple query variations. Mark WebSearch-only findings as LOW confidence.
+Do NOT append a specific year to queries — hardcoded years return stale results once that year passes. Use "latest" / "current" as qualifiers, or use `--freshness week|month` for recency. Use multiple query variations. Mark WebSearch-only findings as LOW confidence.
 
 ### Enhanced Web Search (Brave API)
 
