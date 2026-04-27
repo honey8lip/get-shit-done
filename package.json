@@ -1,64 +1,53 @@
 {
-  "name": "get-shit-done-cc",
-  "version": "1.38.2",
-  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode, Gemini and Codex by TÂCHES.",
+  "name": "get-shit-done",
+  "version": "1.0.0",
+  "description": "A no-nonsense productivity CLI tool to help you focus and get shit done",
+  "main": "src/index.js",
   "bin": {
-    "get-shit-done-cc": "bin/install.js",
-    "gsd-sdk": "bin/gsd-sdk.js"
-  },
-  "files": [
-    "bin",
-    "commands",
-    "get-shit-done",
-    "agents",
-    "hooks",
-    "scripts",
-    "sdk/src",
-    "sdk/prompts",
-    "sdk/dist",
-    "sdk/package.json",
-    "sdk/package-lock.json",
-    "sdk/tsconfig.json"
-  ],
-  "keywords": [
-    "claude",
-    "claude-code",
-    "ai",
-    "meta-prompting",
-    "context-engineering",
-    "spec-driven-development",
-    "gemini",
-    "gemini-cli",
-    "codex",
-    "codex-cli"
-  ],
-  "author": "TÂCHES",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gsd-build/get-shit-done.git"
-  },
-  "homepage": "https://github.com/gsd-build/get-shit-done",
-  "bugs": {
-    "url": "https://github.com/gsd-build/get-shit-done/issues"
-  },
-  "engines": {
-    "node": ">=22.0.0"
-  },
-  "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.84",
-    "ws": "^8.20.0"
-  },
-  "devDependencies": {
-    "c8": "^11.0.0"
+    "gsd": "./bin/gsd.js"
   },
   "scripts": {
-    "build:hooks": "node scripts/build-hooks.js",
-    "build:sdk": "cd sdk && npm ci && npm run build",
-    "prepublishOnly": "npm run build:hooks && npm run build:sdk",
-    "pretest": "npm run build:sdk",
-    "pretest:coverage": "npm run build:sdk",
-    "test": "node scripts/run-tests.cjs",
-    "test:coverage": "c8 --check-coverage --lines 70 --reporter text --include 'get-shit-done/bin/lib/*.cjs' --exclude 'tests/**' --all node scripts/run-tests.cjs"
-  }
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "build": "node scripts/build.js"
+  },
+  "keywords": [
+    "productivity",
+    "cli",
+    "focus",
+    "tasks",
+    "todo"
+  ],
+  "author": "get-shit-done contributors",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "ora": "^7.0.1",
+    "conf": "^12.0.0",
+    "date-fns": "^3.0.6",
+    "nanoid": "^5.0.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "@jest/globals": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/index.js"
+    ]
+  },
+  "type": "module"
 }
